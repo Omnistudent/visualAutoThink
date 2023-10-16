@@ -1,0 +1,487 @@
+{% extends 'event/base.html' %}
+{% load my_tags %}
+{% load static %}
+
+{%block content%}
+
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Redigera Karta</title>
+    <style>
+body{ margin: 0}
+
+.button-container {
+        /*width: 250px;*/
+        height: 300px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        border: 1px solid #000000;
+        background-color: rgb(239, 236, 226);
+    }
+
+    .button-container button {
+      font-family: "IM Fell DW Pica","EB Garamond", serif;
+        width: 100px;
+        height: 70px;
+        margin: 10px;
+        font-size: 20px;
+        color: black;
+        background-color: rgb(240, 229, 198);
+        border: 1px solid #000000;
+        font-weight: bold;
+    }
+
+    .container button:hover {
+  background-color: rgb(241, 216, 151); /* set the background color to red when hovering over the button */
+  color: black;
+  border: 1px solid #000000;
+  cursor: pointer; /* change the cursor to a pointer when hovering over the button */
+}
+.container {
+  width: 100vw;
+  height: 100vh;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: bold;
+  font-size: 2; /* Set font-size to 0 to remove white space between elements */
+  display: grid;
+  grid-template-columns:{{myrange_x|length|multiply:30|add:80 }}px 1fr;
+  grid-template-rows: 50px {{myrange_y|length|multiply:30|add:80 }}px 80px;
+  gap: 10px;
+  padding: 10px;
+  box-sizing: border-box;
+  position: relative;
+  outline: none;
+  
+}
+
+.container div {
+  padding: 10px;
+  margin: px;
+  z-index: 1;
+}
+
+.answercontainer {
+  font-size: 20px;
+  /*width: 400px;*/
+  height: 200px;
+  font-family: "IM Fell DW Pica","EB Garamond", serif;
+  font-weight: bold;
+  gap: 10px;
+  padding: 10px;
+  box-sizing: border-box;
+  position: relative;
+  border: 1px solid #000000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgb(240, 229, 198);
+
+}
+
+.header {
+  
+  grid-column-start: 1;
+  grid-column-end: 4;
+  outline: 2px;
+  border: 1px solid #000000;
+  background-color: rgb(240, 229, 198);
+}
+
+.gridcontainer{
+  font-size: 0;
+  width: {{myrange_x|length|multiply:30|add:30 }}px; 
+  height: {{myrange_y|length|multiply:30|add:30 }}px;
+  position: relative;
+  border: 1px solid #000000;
+  padding: 0px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgb(240, 229, 198);
+  align-items: center;
+  
+}
+
+.content-large {
+  grid-row-start: 2;
+  grid-row-end: span 2;
+  grid-column-start: 1;
+  height: {{myrange_y|length|multiply:30|add:50 }}px;
+  
+  width: {{myrange_x|length|multiply:30|add:50 }}px
+
+  outline: 1px;
+  border: 1px solid #000000;
+  
+  background-color: rgb(240, 229, 198);
+  align-items: center;
+}
+
+.content-small {
+  /*max-width: 300px;*/
+  /*height: 600px;*/
+  font-family: "IM Fell DW Pica","EB Garamond", serif;
+  border: 1px solid #000000;
+  padding: 10px;
+  margin: 0px;
+  z-index: 1;
+  background-color: rgb(240, 229, 198);
+}
+
+.content-question_answer {
+  /*width: 300px;*/
+  height: 600px;
+  font-family: "IM Fell DW Pica","EB Garamond", serif;
+  border: 1px solid #000000;
+  padding: 10px;
+  margin: 0px;
+  z-index: 1;
+  background-color: rgb(237, 215, 156);
+}
+
+.footer {
+  grid-column-start: 1;
+  grid-column-end: span 3;
+  grid-row-start: 3;
+  border: 1px solid #000000;
+  background-color: rgb(240, 229, 198);
+
+}
+
+.square {
+  width: 30px;
+  height: 30px;
+  display: inline-block;
+  margin: 0px;
+  padding: 0px;
+  border: 0px solid black;
+  cursor: pointer;
+  z-index: 0;
+  font-size: initial; /* Set font-size back to initial value */
+}
+
+.ship {
+   width: 30px;
+    height: 30px;
+    background-image: url("{{ STATIC_URL }}event/images/sea1_50.png");
+    background-repeat: no-repeat;
+    background-size: contain;
+    position: relative;
+    transform: translate(-11px, -11px);
+  }
+
+.land {
+    width: 30px;
+    height: 30px;
+    background-image: url("{{ STATIC_URL }}event/images/land1_50.png");
+    background-repeat: no-repeat;
+    background-size: contain;
+    position: relative;
+    transform: translate(-11px, -11px);
+  }
+
+.icon {
+    width: 50px;
+    height: 50px;
+    background-image: url("{{ STATIC_URL }}event/images/ship3.png");
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: contain;
+    position: relative;
+
+    z-index: 2;
+    transform: translate(-50%, -50%);
+  }
+
+.overlay {
+        position: absolute;
+        top: 0px;
+        left: 80px;
+       /* width: {{myrange_x|length|multiply:30|add:100 }}px;
+        height: {{myrange_x|length|multiply:30|add:100 }}px;*/
+        width:200px;
+        height: 200px;
+        background-image: url("{{ STATIC_URL }}event/images/name_tag.png");
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        border-left-width: 2px;
+        z-index: 2;
+        pointer-events: none;
+        
+      }
+
+      .overlay img {
+  border-left-width: 2px;
+}
+
+.ship:hover {
+  border: 2px solid rgb(2, 2, 2);
+}
+
+.land:hover {
+  border: 2px solid blue;
+}
+
+.hover-effect:hover {
+  opacity: 0.5;
+  /* Add any other styles you want to apply to the image when it's being hovered over */
+  /* used for single pictures, pictures are now css objects*/
+}
+
+</style>
+  </head>
+  <body>
+    <div class="container">
+     <div class="header">Header</div>
+     
+     <div class="content-large">
+      <center>
+      <div class="gridcontainer">
+        <form id="mapform" method="post" action="/editmap">
+          {% csrf_token %}
+          {% for row_num_y in myrange_y %}
+            {% for col_num_x in myrange_x %}
+              <div class="square" id="square-{{ col_num_x }}-{{ row_num_y }}" onclick="updatePage({{ col_num_x }}, {{ row_num_y }})">
+                <!--<img src="{{ STATIC_URL }}event/images/image_ship.png" class="hover-effect">-->
+                <!--<div class="ship">-->
+                  <!--<div class="icon"></div>-->
+                <!--</div>-->
+                {% with square4=col_num_x|get_square:row_num_y  %}
+                {% if square4 %}
+                
+                  {% if square4.name == "sea3" %} <!-- If the square is sea-->
+                
+                    <div class="ship">
+                      {% if user.userprofile in dbsquare.occupants3.all %}
+                      <div class="icon"></div>
+                      {% endif %} <!-- End of is user in square-->
+
+                </div>
+                  {% else %}
+                  <div class="land">
+
+                  </div>
+                  {% endif %}
+                {% endif %}
+                {%endwith%}
+                
+                <!--i cut the old code out from here -->
+                {% for beacon in beacons %}
+
+                {% if beacon.x|stringformat:"s" == col_num_x|stringformat:"s" and beacon.y|stringformat:"s" == row_num_y|stringformat:"s" %}  
+                <div class="icon"></div>
+                {% endif %}
+                <!--<div class="overlay" style="top: {{ maptext.1 }}px; left:{{maptext.2}}px"></div>-->
+                <div class="overlay" style="top: {{ maptext.1|add:0 }}px; left:{{ maptext.2|add:0 }}px; background-image: url('{{ STATIC_URL }}event/images/{{ maptext.0 }}')"></div>
+                {% endfor %}
+
+              </div>
+            {% endfor %} <!--End of colx in myrange_x-->
+            <br>
+          {% endfor %} <!--End of rowy in myrange_y-->
+        </form>
+        {% for maptext in overlays %}
+        <!--<div class="overlay" style="top: {{ maptext.1 }}px; left:{{maptext.2}}px"></div>-->
+        <div class="overlay" style="top: {{ maptext.1|add:0 }}px; left:{{ maptext.2|add:0 }}px; background-image: url('{{ STATIC_URL }}event/images/{{ maptext.0 }}')"></div>
+        {% endfor %}
+
+
+        
+      </div> <!--end of gridcontainer-->
+    </center>
+    </div> <!--End contentlarge-->
+    
+
+    <!--Questions window-->
+     <div class="content-question_answer">
+      <center>
+
+ 
+      <br>
+      <div class="button-container">
+        <form method="post" id="changeview-form" action="/editmap">
+          {% csrf_token %}
+ 
+          Ändra vy
+    
+          <br>
+          <button onclick="navigate(0,1)" class="btn btn-success btn-sm">Vy Ner</button>
+          <button onclick="navigate(0,-1)" class="btn btn-success btn-sm">Vy Upp </button>
+          <button onclick="navigate(-1,0)" class="btn btn-success btn-sm">Vy Vänster</button>
+          <button onclick="navigate(1,0)" class="btn btn-success btn-sm">Vy Höger</button>
+          </form>
+          <br>
+          
+    </div>
+    <form method="post" id="changemode-form" action="/editmap">
+      {% csrf_token %}
+
+      Ändra mode
+
+      <br>
+      <button onclick="changeTheMode('move','',0)" class="btn btn-success btn-sm">Flytta</button>
+      <button onclick="changeTheMode('paint sea','',0)" class="btn btn-success btn-sm">Måla Hav</button>
+      <button onclick="changeTheMode('paint land','',0)" class="btn btn-success btn-sm">Måla Land</button>
+      <button onclick="changeTheMode('delete','',0)" class="btn btn-success btn-sm">Radera</button>
+      <br> 
+      <br>
+
+
+      <input type="text" name="label_text" id="label_text" maxlength="20" size="20" value="{{ user.userprofile.temp_label_holder }}">
+
+      <button onclick="changeTheMode('addlabel', document.getElementById('label_text').value),0" class="btn btn-success btn-sm">Etikett</button>
+      <br>
+      
+      <input type="text" name="question_text" id="question_text" maxlength="20" size="20" value="{{ user.userprofile.temp_question_holder }}">
+
+      <button onclick="changeTheMode('questionarea1', document.getElementById('question_text').value,0)" class="btn btn-success btn-sm">Frågeområde</button>
+      <br>
+
+      <input type="text" name="beacon_area" id="beacon_area" maxlength="20" size="20" value="{{ user.userprofile.temp_question_area_holder }}">
+      <input type="text" name="beacon_area_strength" id="beacon_area_strength" maxlength="20" size="20" value="{{ user.userprofile.temp_question_area_strength_holder }}">
+
+      <button onclick="changeTheMode('beacon', document.getElementById('beacon_area').value,document.getElementById('beacon_area_strength').value)" class="btn btn-success btn-sm">Beacon</button>
+
+
+
+      </form>
+     
+  </center>
+     </div>
+  
+
+     <!--Stats window
+     <div class="content-small">
+      Kapten:{{user.userprofile}}
+      <br>
+        position x: {{user.userprofile.xpos}}<br>
+        position y: {{user.userprofile.ypos}}<br>
+        pending position x: {{user.userprofile.pending_xpos}}<br>
+        position y: {{user.userprofile.pending_ypos}}<br>
+        rätta svar:{{user.userprofile.correct_answers}}<br>
+        felaktiga svar:{{user.userprofile.wrong_answers}}<br>
+        mode:{{user.userprofile.mode}}<br>
+        label:{{user.userprofile.temp_label_holder}}<br>
+      <br>
+      view<br>
+      x{{user.userprofile.x}} y{{user.userprofile.y}}<br>
+     </div>
+
+     -->
+     <div class="footer">Content foot</div>
+    </div>
+
+
+<script>
+
+  function navigate(x, y) {
+
+    var user = '{{ user.userprofile.question.area1 }}';
+
+
+      var input_x = document.createElement('input');
+      input_x.type = 'hidden';
+      input_x.name = 'sent_x';
+      input_x.value = x;
+
+      var input_y = document.createElement('input');
+      input_y.type = 'hidden';
+      input_y.name = 'sent_y';
+      input_y.value = y;
+
+      var input_action = document.createElement('input');
+      input_action.type = 'hidden';
+      input_action.name = 'command';
+      input_action.value = 'move_view';
+
+      var form = document.getElementById('changeview-form');
+      form.appendChild(input_x);
+      form.appendChild(input_y);
+      form.appendChild(input_action);
+      form.submit();
+
+}
+
+function changeTheMode(newmode,label_text,number) {
+
+  var command_input = document.createElement('input');
+  command_input.type = 'hidden';
+  command_input.name = 'command';
+  command_input.value = 'change_mode';
+  
+  var answer_input = document.createElement('input');
+  answer_input.type = 'hidden';
+  answer_input.name = 'newmode';
+  answer_input.value = newmode;
+
+  var label_input = document.createElement('input');
+  label_input.type = 'hidden';
+  label_input.name = 'label_text';
+  label_input.value = label_text;
+
+  var question_input = document.createElement('input');
+  question_input.type = 'hidden';
+  question_input.name = 'question_text';
+  question_input.value = label_text;
+
+  var beacon_input = document.createElement('input');
+  beacon_input.type = 'hidden';
+  beacon_input.name = 'beacon_area_text';
+  beacon_input.value = label_text;
+
+  var beacon_input_strength = document.createElement('input');
+  beacon_input_strength.type = 'hidden';
+  beacon_input_strength.name = 'beacon_area_strength';
+  beacon_input_strength.value = number;
+
+  //questionarea1
+  //alert("Selected value: " + dropdownValue);
+  //console.log('Dropdown value:', document.getElementById('dropdown').value);
+  
+  var form = document.getElementById('changemode-form');
+  form.appendChild(command_input);
+  form.appendChild(answer_input);
+  form.appendChild(label_input);
+  form.appendChild(question_input);
+  form.appendChild(beacon_input);
+  form.appendChild(beacon_input_strength);
+  form.submit();
+ 
+}
+
+function updatePage(x, y) {
+
+  var input_x = document.createElement('input');
+  input_x.type = 'hidden';
+  input_x.name = 'sent_x';
+  input_x.value = x;
+
+  var input_y = document.createElement('input');
+  input_y.type = 'hidden';
+  input_y.name = 'sent_y';
+  input_y.value = y;
+
+  var input_action = document.createElement('input');
+  input_action.type = 'hidden';
+  input_action.name = 'command';
+  input_action.value = 'answer';
+
+  var form = document.getElementById('mapform');
+  form.appendChild(input_x);
+  form.appendChild(input_y);
+  form.appendChild(input_action);
+  form.submit();
+}
+
+
+  </script>
+
+  
+
+
+{%endblock%}

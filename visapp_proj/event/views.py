@@ -33,6 +33,7 @@ import csv
 
 blast_files_base_dir="D:/blastresults"
 work_files_base_dir="D:/blastresults"
+default_genome_dir="C:/Users/Eris/Documents/autothinktestfolder/frankiatestgenomes"
 
 def moveallowed(startx,endx,starty,endy):
     
@@ -169,6 +170,23 @@ def home(request):
                 answers = [question.answer1_swedish, question.answer2_swedish, question.answer3_swedish, question.answer4_swedish]
                 overlays=getLabels(user,dbsquares,30)
                 return render(request,'event/home.html',{'myrange_x':myrange_x,'myrange_y':myrange_y,'squaredb':dbsquares,'question':question,'answers':answers,'overlays':overlays,'currentdir':currentdir,'currentdir_listing':currendir_listing})
+            print("sent_command commitdirectory")
+            sent_path = request.POST.get('answer')
+            print (sent_path)
+            if os.path.isdir(sent_path):
+                print(f"{sent_path} is a directory!")
+                user.userprofile.current_genome_dir=sent_path
+                currendir_listing = os.listdir(sent_path)
+                user.userprofile.save()
+            
+                myrange_x,myrange_y,dbsquares=getDatabaseAndView(user.userprofile.x,user.userprofile.y,grid_size_x,grid_size_y)
+
+                question = Question.objects.filter(name='Wrong_1').order_by('?').first()
+                user.userprofile.question=question
+                user.userprofile.save()
+                answers = [question.answer1_swedish, question.answer2_swedish, question.answer3_swedish, question.answer4_swedish]
+                overlays=getLabels(user,dbsquares,30)
+                return render(request,'event/home.html',{'myrange_x':myrange_x,'myrange_y':myrange_y,'squaredb':dbsquares,'question':question,'answers':answers,'overlays':overlays,'currentdir':sent_path,'currentdir_listing':currendir_listing})
             
 
 
@@ -237,6 +255,28 @@ def home(request):
 
 
 
+        if sent_action == 'prepare':
+            print("sent_command prepare")
+            sent_answer = request.POST.get('answer')
+         
+            genObj = genomeEntry.objects.filter(name=sent_answer).first()
+           
+            genomeFullPath=genObj.path+"/"+genObj.name
+            contigs=prepareGenomeForBlast(genomeFullPath)
+            print(contigs[0])
+            print(contigs[1])
+            genObj.contigs_num=contigs[0]
+            genObj.genome_size=contigs[1]
+            genObj.save()
+
+
+            
+            answers = [question.answer1_swedish, question.answer2_swedish, question.answer3_swedish, question.answer4_swedish]
+            myrange_x,myrange_y,dbsquares=getDatabaseAndView(user.userprofile.x,user.userprofile.y,grid_size_x,grid_size_y)
+            overlays=getLabels(user,dbsquares,30)
+            sent_path=user.userprofile.current_genome_dir
+            return render(request,'event/home.html',{'myrange_x':myrange_x,'myrange_y':myrange_y,'squaredb':dbsquares,'question':question,'answers':answers,'overlays':overlays,'currentdir':sent_path,'currentdir_listing':currendir_listing})
+
 
 
         if sent_action == 'commitDirectory':
@@ -284,7 +324,8 @@ def home(request):
 
     else: # if request method was not post
 
-        dbsquares = Square.objects.filter(x__in=charsx,y__in=charsy)
+        #dbsquares = Square.objects.filter(x__in=charsx,y__in=charsy)
+        myrange_x,myrange_y,dbsquares=getDatabaseAndView(user.userprofile.x,user.userprofile.y,grid_size_x,grid_size_y)
 
         # Send ranges,database,question and randomly ordered answers
         overlays=getLabels(user,dbsquares,30)
@@ -305,6 +346,32 @@ def home(request):
 
 
 def getGenomeInfo(genomeFullPath):
+    file_end=genomeFullPath.split(".")[-1]
+    genbank_endings= ["gbk", "gb","gbff"]
+    fasta_endings= ["fa", "fasta","fna"]
+    genomeFullPath_fh=open(genomeFullPath,"r")
+    print(file_end)
+    if file_end in genbank_endings:
+        parsed_genbank=list(SeqIO.parse(genomeFullPath_fh,"genbank"))
+        print("genbank")
+    elif file_end in fasta_endings:
+        print("fasta")
+        parsed_genbank=list(SeqIO.parse(genomeFullPath_fh,"fasta"))
+    else:
+        print("error")
+
+    genomeFullPath_fh.close()
+    numcontigs=len(parsed_genbank)
+    totalgenomesize=0
+    for record in parsed_genbank:
+        seq= str(record.seq)
+        seqlen=len(seq)
+        totalgenomesize+=seqlen
+
+    print(dir(parsed_genbank))
+    return(numcontigs,totalgenomesize)
+
+def prepareGenomeForBlast(genomeFullPath):
     file_end=genomeFullPath.split(".")[-1]
     genbank_endings= ["gbk", "gb","gbff"]
     fasta_endings= ["fa", "fasta","fna"]
@@ -415,6 +482,27 @@ def editmap(request):
         sent_action = request.POST.get('command')
         sent_answer = request.POST.get('answer')
         
+
+        if sent_action == 'commitDirectory':
+            print("sent_command commitdirectory")
+            sent_path = request.POST.get('answer')
+            print (sent_path)
+            if os.path.isdir(sent_path):
+                print(f"{sent_path} is a directory!")
+                user.userprofile.current_genome_dir=sent_path
+                currendir_listing = os.listdir(sent_path)
+                user.userprofile.save()
+            
+                myrange_x,myrange_y,dbsquares=getDatabaseAndView(user.userprofile.x,user.userprofile.y,grid_size_x,grid_size_y)
+
+                question = Question.objects.filter(name='Wrong_1').order_by('?').first()
+                user.userprofile.question=question
+                user.userprofile.save()
+                answers = [question.answer1_swedish, question.answer2_swedish, question.answer3_swedish, question.answer4_swedish]
+                overlays=getLabels(user,dbsquares,30)
+                return render(request,'event/home.html',{'myrange_x':myrange_x,'myrange_y':myrange_y,'squaredb':dbsquares,'question':question,'answers':answers,'overlays':overlays,'currentdir':sent_path,'currentdir_listing':currendir_listing})
+
+
 
         if sent_action == 'move_view':
             sent_x = request.POST.get('sent_x')
@@ -545,13 +633,36 @@ def editmap(request):
 
 
     else: # if request method was not post
+        print("sent_command commitdirectory")
+        sent_path=user.userprofile.current_genome_dir
+        if sent_path=="-1":
+            sent_path=default_genome_dir
+            user.userprofile.current_genome_dir=default_genome_dir
+            user.save()
 
-        dbsquares = Square.objects.filter(x__in=charsx,y__in=charsy)
+        if os.path.isdir(sent_path):
+            currendir_listing = os.listdir(sent_path)
+
+        myrange_x,myrange_y,dbsquares=getDatabaseAndView(user.userprofile.x,user.userprofile.y,grid_size_x,grid_size_y)
 
         # Send ranges,database,question and randomly ordered answers
         overlays=getLabels(user,dbsquares,30)
-        beacons=Beacon.objects.all()
-        return render(request,'event/editmap.html',{'myrange_x':myrange_x,'myrange_y':myrange_y,'squaredb':dbsquares,'question':question,'answers':answers,'overlays':overlays,'beacons':beacons})
+
+        directory_path = 'C:/Users/Eris/Documents'  # Replace with the path to your directory
+        print("here------------------------")
+        file_list = ["test1","testt2"]#os.listdir(directory_path)
+    
+        items = []
+        for file_name in file_list:
+            item = ListItem(name=file_name)
+            items.append(item)
+
+
+ 
+
+        #items = ListItem.objects.all()
+        sent_path=user.userprofile.current_genome_dir
+        return render(request,'event/home.html',{'myrange_x':myrange_x,'myrange_y':myrange_y,'squaredb':dbsquares,'question':question,'answers':answers,'overlays':overlays,'currentdir':sent_path,'currentdir_listing':currendir_listing})
 
 def get_image_size(file_path):
     with Image.open(file_path) as img:

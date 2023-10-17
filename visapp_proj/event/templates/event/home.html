@@ -125,7 +125,7 @@ body{ margin: 0}
   grid-column-start: 1;
   height: 410px;
   
-  width: 700px;
+  width: 900px;
 
   outline: 1px;
   border: 1px solid #000000;
@@ -200,12 +200,7 @@ body{ margin: 0}
      <div class="header">Kapten: {{user.userprofile}}</div>
      
      <div class="content-large">
-      {% for item in dbsquares %}
-      
-ata
-      
 
-    {% endfor %}
 
       <table id="example" class="table table-striped" style="width:100%">
 
@@ -218,6 +213,7 @@ ata
                 <th>Contigs</th>
                 <th>Genome Size</th>
                 <th>Analyze</th>
+                <th>Prepare</th>
             </tr>
         </thead>
         <tbody>
@@ -229,7 +225,8 @@ ata
             <td> {{item.path}}</td>
             <td> {{item.contigs_num}}</td>
             <td> {{item.genome_size}}</td>
-            <td><button class="myButton" onclick="receiveAnswer2('{{ item.name }}')">Click Me</button></td>
+            <td><button class="myButton" onclick="receiveAnswer2('{{ item.name }}')">Analyse</button></td>
+            <td><button class="myButton" onclick="prepare('{{ item.name }}')">Prepare</button></td>
 
           </tr>
 
@@ -447,6 +444,29 @@ function receiveAnswer2(genomename) {
  
   form.appendChild(answer_input);
   form.submit();
+}
+
+function prepare(genomename) {
+
+
+
+var command_input = document.createElement('input');
+command_input.type = 'hidden';
+command_input.name = 'command';
+command_input.value = 'prepare';
+
+var answer_input = document.createElement('input');
+answer_input.type = 'hidden';
+answer_input.name = 'answer';
+answer_input.value = genomename;
+//alert("Selected value: " + dropdownValue);
+//console.log('Dropdown value:', document.getElementById('dropdown').value);
+
+var form = document.getElementById('question-form');
+form.appendChild(command_input);
+
+form.appendChild(answer_input);
+form.submit();
 }
 
 

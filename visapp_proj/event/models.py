@@ -197,7 +197,7 @@ class MyFile(models.Model):
 		
 class genomeEntry(models.Model):
     name=models.CharField('name',max_length=120)
-    path=models.CharField('path',max_length=120)
+    path=models.CharField('path',max_length=120,default="-1")
     extra=models.CharField('extra',max_length=120)
     is_dir=models.CharField('is_dir',max_length=120,default=-1)
     description=models.TextField(blank=True)
@@ -207,6 +207,7 @@ class genomeEntry(models.Model):
     dir_files=models.ManyToManyField(MyFile,blank=True)
     blast_files_dir=models.CharField('blast_files_dir',max_length=120,default="D:/blastresults/")
     work_files_dir=models.CharField('work_files_dir',max_length=120,default="D:/workfiles/")
+    concat_fasta_file=models.CharField('work_files_dir',max_length=120,default="")
 
     def __str__(self):
 	    return self.name

@@ -27,12 +27,14 @@ from django.conf import settings
 import os
 from .models import ListItem
 from Bio import SeqIO
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
 
 import csv
 #from django.http import HttpResponse
 
 blast_files_base_dir="D:/blastresults"
-work_files_base_dir="D:/blastresults"
+work_files_base_dir="D:/workfiles"
 default_genome_dir="C:/Users/Eris/Documents/autothinktestfolder/frankiatestgenomes"
 
 def moveallowed(startx,endx,starty,endy):
@@ -214,11 +216,14 @@ def home(request):
         if sent_action == 'addgenomes':
             print("sent_command addgenomes")
             sent_answer = request.POST.get('answer').split(",")
+            
             for i in sent_answer:
                 print(i)
                 existing_entry = genomeEntry.objects.filter(name=i).first()
+                
 
                 if not existing_entry:
+                    cleanedname=i.split(".")[0]
                     if os.path.isdir(user.userprofile.current_genome_dir+"/"+i):
                         dirinput="1"
                     else:
@@ -262,7 +267,7 @@ def home(request):
             genObj = genomeEntry.objects.filter(name=sent_answer).first()
            
             genomeFullPath=genObj.path+"/"+genObj.name
-            contigs=prepareGenomeForBlast(genomeFullPath)
+            contigs=prepareGenomeForBlast(genomeFullPath,genObj,sent_answer)
             print(contigs[0])
             print(contigs[1])
             genObj.contigs_num=contigs[0]
@@ -371,11 +376,24 @@ def getGenomeInfo(genomeFullPath):
     print(dir(parsed_genbank))
     return(numcontigs,totalgenomesize)
 
-def prepareGenomeForBlast(genomeFullPath):
-    file_end=genomeFullPath.split(".")[-1]
+def prepareGenomeForBlast(genomeFullPath,genObj,genomename):
+    file_end=genomename.split(".")[-1]
+    file_start=genomename.split(".")[0]
     genbank_endings= ["gbk", "gb","gbff"]
     fasta_endings= ["fa", "fasta","fna"]
     genomeFullPath_fh=open(genomeFullPath,"r")
+
+    full_file_start=genomename.split(".")[0]
+
+    concatFastaFilename=file_start+"_conc.fa"
+
+    my_work_files_dir=work_files_base_dir+"/"+file_start
+    print(my_work_files_dir)
+    if not os.path.exists(my_work_files_dir):
+        os.makedirs(my_work_files_dir)
+
+                    
+
     print(file_end)
     if file_end in genbank_endings:
         parsed_genbank=list(SeqIO.parse(genomeFullPath_fh,"genbank"))
@@ -386,15 +404,41 @@ def prepareGenomeForBlast(genomeFullPath):
     else:
         print("error")
 
-    genomeFullPath_fh.close()
+    
     numcontigs=len(parsed_genbank)
+    
     totalgenomesize=0
+    concatenated_sequence = sum(parsed_genbank, Seq(""))
+
+    tempstring=""
+    
     for record in parsed_genbank:
         seq= str(record.seq)
-        seqlen=len(seq)
-        totalgenomesize+=seqlen
+        tempstring+=seq
+       
+    
+    #sequences = [str(record.seq) for record in SeqIO.parse(genomeFullPath, "fasta")]
 
-    print(dir(parsed_genbank))
+    #print(sequences[0])
+    atta= Seq(tempstring)
+    concatenated_record = SeqRecord(atta, id=file_start, description=file_start)
+    genomeFullPath_fh.close()
+    
+    
+    outputdir=my_work_files_dir
+    outputname=outputdir+"/"+concatFastaFilename
+    genObj.work_files_dir=my_work_files_dir
+
+    genObj.concat_fasta_file=outputname
+
+    genObj.save() 
+    
+    output_fh=open(outputname,"w")
+
+    output_filename = outputname
+    SeqIO.write(concatenated_record, output_fh, "fasta")
+    output_fh.close()
+    
     return(numcontigs,totalgenomesize)
 
 
